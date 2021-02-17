@@ -2,7 +2,7 @@ import torch
 import torch.optim as optim
 
 import dataloader
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 random_seed = 1
 torch.backends.cudnn.enabled = False

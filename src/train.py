@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from dataloader import MNISTDataLoader
 from pretext_models.pilot_model import Net
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 random_seed = 1
 torch.backends.cudnn.enabled = False
@@ -77,11 +77,11 @@ for epoch in range(1, n_epochs + 1):
 
 print('Train time: {:.2f}s'.format(time.time() - start_time))
 
-fig = plt.figure()
-plt.plot(train_counter, train_losses, color='blue')
-plt.scatter(test_counter, test_losses, color='red')
-plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
-plt.xlabel('number of training examples seen')
-plt.ylabel('negative log likelihood loss')
+# fig = plt.figure()
+# plt.plot(train_counter, train_losses, color='blue')
+# plt.scatter(test_counter, test_losses, color='red')
+# plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
+# plt.xlabel('number of training examples seen')
+# plt.ylabel('negative log likelihood loss')
 
-plt.show()
+# plt.show()
