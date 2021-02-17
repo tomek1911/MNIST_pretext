@@ -1,3 +1,5 @@
+#Visual Studio Code
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -10,3 +12,9 @@
 
 # ignore compressed data
 *.gz
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Data directory
+data
