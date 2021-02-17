@@ -21,7 +21,7 @@ print('Using: ', my_device)
 
 network = Net().to(device=my_device)
 optimizer = torch.optim.SGD(network.parameters(), lr = 0.01, momentum=0.5, weight_decay=1e-3)
-loader = MNISTDataLoader('../data', False, training_batch)
+loader = MNISTDataLoader('../data', True, training_batch)
 train_loader = loader.train_loader
 test_loader = loader.test_loader
 
