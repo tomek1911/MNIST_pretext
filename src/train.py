@@ -1,3 +1,5 @@
+
+import argparse
 import time
 import torch.nn
 import torch.optim
@@ -13,14 +15,39 @@ random_seed = 1
 torch.backends.cudnn.enabled = False
 torch.manual_seed(random_seed)
 
-loger_interval = 10
-n_epochs = 14
-batch_size = 512
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "-n", "--n_epochs", help="number of learning epochs", type=int, default = 10
+    )
+parser.add_argument(
+    "-b", "--batch_size", help="size of minibatch", type=int, default = 32
+    )
+parser.add_argument(
+    "--min_lr", help="base minimal value of lerning rate for CyclicLR", type=int, default = 0.01
+    )
+parser.add_argument(
+    "--max_lr", help="base minimal value of lerning rate for CyclicLR", type=int, default = 0.3
+    )
+parser.add_argument(
+    "-m","--momentum", help="base minimal momentum value for CyclicLR", type=int, default = 0.5
+    )
+args = parser.parse_args()
+
+
 save_state = True
+loger_interval = 10
+
+n_epochs = args.n_epochs
+batch_size = args.batch_size
+min_lr = args.min_lr
+max_lr= args.max_lr
+base_momentum = args.momentum
+
+print(f"Training config:\n\tn_epochs: {n_epochs}, batch_size: {batch_size}, min_lr: {min_lr}, max_lr: {max_lr}, base_momentum: {base_momentum}.")
 
 use_cuda = torch.cuda.is_available()
 my_device = torch.device("cuda:0" if use_cuda else "cpu")
-print('Using: ', my_device)
+print('Using device: ', my_device)
 
 network = Net().to(device=my_device)
 summary(network, (1, 28, 28))
@@ -39,9 +66,9 @@ test_dataset_size = len(test_loader.dataset)
 # lr_finder.plot()
 
 network = Net().to(device=my_device)
-optimizer = torch.optim.SGD(network.parameters(), lr=0.05, momentum=0.5)
+optimizer = torch.optim.SGD(network.parameters(), lr=min_lr, momentum= 0.5)
 step_up = (train_dataset_size / (10 * batch_size))*(n_epochs/2) 
-scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=0.01, max_lr=0.25, cycle_momentum = True, base_momentum=0.5, max_momentum=0.9, step_size_up = int(step_up), mode = 'exp_range')
+scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=min_lr, max_lr=max_lr, cycle_momentum = True, base_momentum=0.5, max_momentum=0.9, step_size_up = int(step_up), mode = 'exp_range')
 
 pls.plot_dataset_sample(train_loader)
 
