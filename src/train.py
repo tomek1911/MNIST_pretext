@@ -1,20 +1,22 @@
 import time
+import torch.nn
 import torch.optim
 import torch.nn.functional as F
 from torchsummary import summary
 
 from dataloader import MNISTDataLoader
-from pretext_models.pilot_model import Net
-# import matplotlib.pyplot as plt
+from pretext_models.models import Net
+import utils.plots as pls
+from utils.lr_range_finder import LRFinder
 
 random_seed = 1
 torch.backends.cudnn.enabled = False
 torch.manual_seed(random_seed)
 
-loger_interval = 100
-n_epochs = 5
-training_batch = 32
-save_state = False
+loger_interval = 10
+n_epochs = 14
+batch_size = 512
+save_state = True
 
 use_cuda = torch.cuda.is_available()
 my_device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -22,17 +24,30 @@ print('Using: ', my_device)
 
 network = Net().to(device=my_device)
 summary(network, (1, 28, 28))
- 
-optimizer = torch.optim.SGD(network.parameters(), lr=0.01, momentum=0.9)
-loader = MNISTDataLoader('../data', True, training_batch)
+
+loader = MNISTDataLoader('../data', True, batch_size, batch_size)
 train_loader = loader.train_loader
 test_loader = loader.test_loader
 validation_loader = loader.validation_loader
-train_losses = []
-train_counter = []
-test_losses = []
-test_counter = [i*len(train_loader.dataset) for i in range(n_epochs + 1)]
+train_dataset_size = len(train_loader.dataset)
+validation_dataset_size = len(validation_loader.dataset)
+test_dataset_size = len(test_loader.dataset)
 
+# optimizer_lr = torch.optim.SGD(network.parameters(), lr=2e-4)
+# lr_finder = LRFinder(network, optimizer_lr, torch.nn.CrossEntropyLoss(), my_device)
+# lr_finder.range_test(train_loader, end_lr=2, num_iter=600)
+# lr_finder.plot()
+
+network = Net().to(device=my_device)
+optimizer = torch.optim.SGD(network.parameters(), lr=0.05, momentum=0.5)
+step_up = (train_dataset_size / (10 * batch_size))*(n_epochs/2) 
+scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=0.01, max_lr=0.25, cycle_momentum = True, base_momentum=0.5, max_momentum=0.9, step_size_up = int(step_up), mode = 'exp_range')
+
+pls.plot_dataset_sample(train_loader)
+
+train_losses = []
+valid_losses = []
+test_losses = []
 
 def train(epoch):
   network.train()
@@ -43,14 +58,13 @@ def train(epoch):
     loss = F.cross_entropy(output, target)
     loss.backward()
     optimizer.step()
+    scheduler.step()
 
     if batch_idx % loger_interval == 0:
-      print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-        epoch, batch_idx * len(data), len(train_loader.dataset),
-        100. * batch_idx / len(train_loader), loss.item()))
+      optimizer
+      print(f'Train epoch: {epoch} seen [{batch_idx * train_loader.batch_size}/{train_dataset_size}]\tLoss: {loss.item():.3f}')
       train_losses.append(loss.item())
-      train_counter.append(
-        (batch_idx*training_batch) + ((epoch-1)*len(train_loader.dataset)))
+      
       if save_state:  
         torch.save(network.state_dict(), './results/model.pth')
         torch.save(optimizer.state_dict(), './results/optimizer.pth')
@@ -65,11 +79,9 @@ def validation():
       pred = output.data.max(1, keepdim=True)[1]
       correct += pred.eq(target.data.view_as(pred)).sum()
       valid_loss += F.cross_entropy(output, target, size_average=False).item()
-    valid_loss /= len(validation_loader.dataset)
-    print('\nValidation set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-    valid_loss, correct, len(test_loader.dataset),
-    100. * correct / len(test_loader.dataset)))
-
+    valid_loss /= validation_dataset_size
+    valid_losses.append(valid_loss)
+    print(f'\nValidation set: Avg. loss: {valid_loss:.3f}, Accuracy: {correct}/{validation_dataset_size} ({100. * correct/validation_dataset_size:.1f}%)\n')
 
 def test():
   network.eval()
@@ -84,27 +96,14 @@ def test():
       correct += pred.eq(target.data.view_as(pred)).sum()
   test_loss /= len(test_loader.dataset)
   test_losses.append(test_loss)
-  print('\nTest set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-    test_loss, correct, len(test_loader.dataset),
-    100. * correct / len(test_loader.dataset)))
+  print(f'Test set: Avg. loss: {test_loss:.3f}, Accuracy: {correct}/{test_dataset_size} ({100. * correct/test_dataset_size:.1f}%)\n')
 
-
-
-test()
 start_time = time.time()
 for epoch in range(1, n_epochs + 1):
   train(epoch)
   validation()
 
 test()
-
 print('Train time: {:.2f}s'.format(time.time() - start_time))
 
-# fig = plt.figure()
-# plt.plot(train_counter, train_losses, color='blue')
-# plt.scatter(test_counter, test_losses, color='red')
-# plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
-# plt.xlabel('number of training examples seen')
-# plt.ylabel('negative log likelihood loss')
-
-# plt.show()
+pls.plot_training_results(train_losses, valid_losses, n_epochs)

@@ -16,7 +16,7 @@ class MNISTDataLoader:
     test_dataset = None 
     mytransform = None
 
-    def __init__(self, path, isDownload, training_batch):
+    def __init__(self, path, isDownload, training_batch, test_batch):
 
         self.mytransform = torchvision.transforms.Compose(
             [torchvision.transforms.ToTensor(),
@@ -30,8 +30,8 @@ class MNISTDataLoader:
         self.test_dataset = MNIST(path, train=False, download = isDownload, transform=self.mytransform)
        
         self.train_loader = DataLoader(self.train_dataset, batch_size=training_batch, shuffle=True)
-        self.validation_loader = DataLoader(self.validaton_dataset, batch_size=1000, shuffle=True)
-        self.test_loader = DataLoader(self.test_dataset, batch_size=1000, shuffle=False)
+        self.validation_loader = DataLoader(self.validaton_dataset, batch_size=test_batch, shuffle=True)
+        self.test_loader = DataLoader(self.test_dataset, batch_size=test_batch, shuffle=False)
         
 
         
