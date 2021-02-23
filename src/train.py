@@ -109,7 +109,7 @@ def validation():
       output = network(data)
       pred = output.data.max(1, keepdim=True)[1]
       correct += pred.eq(target.data.view_as(pred)).sum()
-      valid_loss += F.cross_entropy(output, target, reduction=False).item()
+      valid_loss += F.cross_entropy(output, target, reduce=False).item()
     valid_loss /= validation_dataset_size
     valid_losses.append(valid_loss)
     print(f'\nValidation set: Avg. loss: {valid_loss:.3f}, Accuracy: {correct}/{validation_dataset_size} ({100. * correct/validation_dataset_size:.1f}%)\n')
@@ -122,7 +122,7 @@ def test():
     for data, target in test_loader:
       data, target = data.to(my_device), target.to(my_device)  
       output = network(data)
-      test_loss += F.cross_entropy(output, target, reduction=False).item()
+      test_loss += F.cross_entropy(output, target, reduce=False).item()
       pred = output.data.max(1, keepdim=True)[1]
       correct += pred.eq(target.data.view_as(pred)).sum()
   test_loss /= len(test_loader.dataset)
