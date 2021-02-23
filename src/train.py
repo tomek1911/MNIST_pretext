@@ -17,20 +17,23 @@ torch.manual_seed(random_seed)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-n", "--n_epochs", help="number of learning epochs", type=int, default = 10
-    )
+    "-n", "--n_epochs", help="number of learning epochs", type=int, default=14
+)
 parser.add_argument(
-    "-b", "--batch_size", help="size of minibatch", type=int, default = 32
-    )
+    "-b", "--batch_size", help="size of minibatch", type=int, default=128
+)
 parser.add_argument(
-    "--min_lr", help="base minimal value of lerning rate for CyclicLR", type=int, default = 0.01
-    )
+    "--min_lr", help="base minimal value of lerning rate for CyclicLR", type=int, default=0.05
+)
 parser.add_argument(
-    "--max_lr", help="base minimal value of lerning rate for CyclicLR", type=int, default = 0.3
-    )
+    "--max_lr", help="base minimal value of lerning rate for CyclicLR", type=int, default=0.25
+)
 parser.add_argument(
-    "-m","--momentum", help="base minimal momentum value for CyclicLR", type=int, default = 0.5
-    )
+    "-m", "--momentum", help="base minimal momentum value for CyclicLR", type=int, default=0.5
+)
+parser.add_argument(
+    "-c", "--cycles", help="how many cycles of CyclicLR, default one cycle", type=int, default=1
+)
 args = parser.parse_args()
 
 
@@ -40,8 +43,9 @@ loger_interval = 10
 n_epochs = args.n_epochs
 batch_size = args.batch_size
 min_lr = args.min_lr
-max_lr= args.max_lr
+max_lr = args.max_lr
 base_momentum = args.momentum
+cycles = args.cycles
 
 print(f"Training config:\n\tn_epochs: {n_epochs}, batch_size: {batch_size}, min_lr: {min_lr}, max_lr: {max_lr}, base_momentum: {base_momentum}.")
 
@@ -67,7 +71,7 @@ test_dataset_size = len(test_loader.dataset)
 
 network = Net().to(device=my_device)
 optimizer = torch.optim.SGD(network.parameters(), lr=min_lr, momentum= 0.5)
-step_up = (train_dataset_size / (10 * batch_size))*(n_epochs/2) 
+step_up = (train_dataset_size / (10 * batch_size))*(n_epochs/2)/cycles
 scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=min_lr, max_lr=max_lr, cycle_momentum = True, base_momentum=0.5, max_momentum=0.9, step_size_up = int(step_up), mode = 'exp_range')
 
 pls.plot_dataset_sample(train_loader)
@@ -105,7 +109,7 @@ def validation():
       output = network(data)
       pred = output.data.max(1, keepdim=True)[1]
       correct += pred.eq(target.data.view_as(pred)).sum()
-      valid_loss += F.cross_entropy(output, target, size_average=False).item()
+      valid_loss += F.cross_entropy(output, target, reduction=False).item()
     valid_loss /= validation_dataset_size
     valid_losses.append(valid_loss)
     print(f'\nValidation set: Avg. loss: {valid_loss:.3f}, Accuracy: {correct}/{validation_dataset_size} ({100. * correct/validation_dataset_size:.1f}%)\n')
@@ -118,7 +122,7 @@ def test():
     for data, target in test_loader:
       data, target = data.to(my_device), target.to(my_device)  
       output = network(data)
-      test_loss += F.cross_entropy(output, target, size_average=False).item()
+      test_loss += F.cross_entropy(output, target, reduction=False).item()
       pred = output.data.max(1, keepdim=True)[1]
       correct += pred.eq(target.data.view_as(pred)).sum()
   test_loss /= len(test_loader.dataset)
