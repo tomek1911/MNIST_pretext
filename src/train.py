@@ -23,13 +23,13 @@ parser.add_argument(
     "-b", "--batch_size", help="size of minibatch", type=int, default=128
 )
 parser.add_argument(
-    "--min_lr", help="base minimal value of lerning rate for CyclicLR", type=int, default=0.05
+    "--min_lr", help="base minimal value of lerning rate for CyclicLR", type=float, default=0.05
 )
 parser.add_argument(
-    "--max_lr", help="base minimal value of lerning rate for CyclicLR", type=int, default=0.25
+    "--max_lr", help="base minimal value of lerning rate for CyclicLR", type=float, default=0.25
 )
 parser.add_argument(
-    "-m", "--momentum", help="base minimal momentum value for CyclicLR", type=int, default=0.5
+    "-m", "--momentum", help="base minimal momentum value for CyclicLR", type=float, default=0.5
 )
 parser.add_argument(
     "-c", "--cycles", help="how many cycles of CyclicLR, default one cycle", type=int, default=1
