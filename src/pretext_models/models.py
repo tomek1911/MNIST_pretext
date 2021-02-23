@@ -18,7 +18,7 @@ class Net(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.dropout(x, training=self.training, p=0.5)
         x = self.fc2(x)
-        return F.log_softmax(x,dim=1)
+        return x
 
 
     
