@@ -44,7 +44,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-
+go_deeper = True
 save_state = True
 loger_interval = 10
 
@@ -56,7 +56,7 @@ base_momentum = args.momentum
 cycles = args.cycles
 dataset = args.dataset
 is_lr_find = args.lr_find
-go_deeper = True
+
 
 print(f"Training config:\n\t dataset: {dataset}, n_epochs: {n_epochs}, batch_size: {batch_size}, min_lr: {min_lr}, max_lr: {max_lr}, base_momentum: {base_momentum}.")
 
@@ -92,11 +92,11 @@ validation_dataset_size = len(validation_loader.dataset)
 test_dataset_size = len(test_loader.dataset)
 
 if is_lr_find:
-  optimizer_lr = torch.optim.SGD(network.parameters(), lr=2e-4)
+  optimizer_lr = torch.optim.SGD(network.parameters(), lr=1e-4)
   lr_finder = LRFinder(network, optimizer_lr, torch.nn.CrossEntropyLoss(), my_device)
-  lr_finder.range_test(train_loader, end_lr=2, num_iter=200)
+  lr_finder.range_test(train_loader, end_lr=1, num_iter=50)
   lr_finder.plot()
-  network = Net(channels=3).to(device=my_device)
+  # network = Net(channels=3).to(device=my_device)
 
 optimizer = torch.optim.SGD(network.parameters(), lr=min_lr, momentum= 0.5)
 step_up = (train_dataset_size / (batch_size))*(n_epochs/2)/cycles

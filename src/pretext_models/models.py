@@ -23,7 +23,7 @@ class Net(nn.Module):
         return x
 
 class NetVgg(nn.Module):
-    def __init__(self, features, num_classes = 10):
+    def __init__(self, features, num_classes = 10, init_weights=True):
         super(NetVgg, self).__init__()
         
         self.features = features
@@ -36,7 +36,9 @@ class NetVgg(nn.Module):
             nn.ReLU(True),
             nn.Dropout(),
             nn.Linear(4096, num_classes),
-        )   
+        )
+        if init_weights:
+            self._initialize_weights()
    
     def forward(self, x):
         x = self.features(x)
