@@ -8,6 +8,7 @@ from torchsummary import summary
 
 from dataloader import CIFAR10DataLoader, MNISTDataLoader
 from pretext_models.models import Net
+from pretext_models.models import myVgg
 import utils.plots as pls
 from utils.lr_range_finder import LRFinder
 
@@ -55,12 +56,15 @@ base_momentum = args.momentum
 cycles = args.cycles
 dataset = args.dataset
 is_lr_find = args.lr_find
+go_deeper = True
 
 print(f"Training config:\n\t dataset: {dataset}, n_epochs: {n_epochs}, batch_size: {batch_size}, min_lr: {min_lr}, max_lr: {max_lr}, base_momentum: {base_momentum}.")
 
 use_cuda = torch.cuda.is_available()
 my_device = torch.device("cuda:0" if use_cuda else "cpu")
 print('Using device: ', my_device)
+
+network = myVgg().to(device=my_device)
 
 loader = None
 network = None
@@ -69,8 +73,12 @@ if dataset == "MNIST":
   summary(network, (1, 28, 28))
   loader = MNISTDataLoader('./data', True, batch_size, batch_size)
 elif dataset == "CIFAR10":
-  network = Net(channels=3).to(device=my_device)
-  summary(network, (3, 32, 32))
+  if go_deeper:
+    network = myVgg().to(device=my_device)
+    summary(network, (3, 32, 32))
+  else:
+    network = Net(channels=3).to(device=my_device)
+    summary(network, (3, 32, 32))
   loader = CIFAR10DataLoader('./data', True, batch_size, batch_size)
 
 if (loader or network) is None:
