@@ -11,8 +11,8 @@ def plot_training_results(train_losses, valid_losses, n_epochs, filename):
     validation_x = np.arange(len(train_losses)/n_epochs, len(train_losses)+1, len(train_losses)/n_epochs).tolist()
     plt.plot(validation_x, valid_losses, color='red')
     plt.legend(['Train Loss', 'Valid Loss'], loc='upper right')
-    plt.xlabel('training samples')
-    plt.ylabel('negative log likelihood loss')
+    plt.xlabel('presented minibatches')
+    plt.ylabel('NLL loss (cross_entropy)')
     plt.savefig(f"results/{filename}.png")
 
 
