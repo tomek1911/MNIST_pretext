@@ -38,13 +38,12 @@ parser.add_argument(
 parser.add_argument(
     "-d", "--dataset", help="chose dataset: MNIST, CIFAR10", type=str, default="MNIST"
 )
-
 parser.add_argument(
     "-l", "--lr_find", help="find best range for cyclic learning rate", type=bool, default=False
 )
 args = parser.parse_args()
 
-go_deeper = True
+go_deeper = False
 save_state = True
 loger_interval = 10
 
@@ -56,7 +55,6 @@ base_momentum = args.momentum
 cycles = args.cycles
 dataset = args.dataset
 is_lr_find = args.lr_find
-
 
 print(f"Training config:\n\t dataset: {dataset}, n_epochs: {n_epochs}, batch_size: {batch_size}, min_lr: {min_lr}, max_lr: {max_lr}, base_momentum: {base_momentum}.")
 
@@ -170,3 +168,25 @@ test()
 print('Train time: {:.2f}s'.format(time.time() - start_time))
 
 pls.plot_training_results(train_losses, valid_losses, n_epochs,"cifar_training")
+
+## check results for classes
+
+if dataset == "CIFAR10":
+
+  class_correct = list(0. for i in range(10))
+  class_total = list(0. for i in range(10))
+  with torch.no_grad():
+      for data, target in test_loader:
+          data, target = data.to(my_device), target.to(my_device) 
+          outputs = network(data)
+          _, predicted = torch.max(outputs, 1)
+          c = (predicted == target).squeeze()
+          for i in range(4):
+              label = target[i]
+              class_correct[label] += c[i].item()
+              class_total[label] += 1
+
+
+  for i in range(10):
+      print('Accuracy of %5s : %2d %%' % (
+          loader.classes[i], 100 * class_correct[i] / class_total[i]))
