@@ -12,9 +12,9 @@ from pretext_models.models import myVgg
 import utils.plots as pls
 from utils.lr_range_finder import LRFinder
 
-random_seed = 1
-torch.backends.cudnn.enabled = False
-torch.manual_seed(random_seed)
+torch.manual_seed(1)
+torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.enabled = True
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
